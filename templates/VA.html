@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>VADD System - Vulnerability Assessment</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h2 style="text-align: center;">Vulnerability Assessment</h2>
+
+    <!-- Input Form for Target IP/Domain and Port/Port Ranges -->
+    <form id="scan-form" action="{{ url_for('VA') }}" method="POST">
+        <label for="target">Target IP Address/Domain:</label>
+        <input type="text" id="target" name="target" placeholder="Enter IP Address or Domain" required>
+        
+        <label for="port">Port/Port Range:</label>
+        <input type="text" id="port" name="port" placeholder="Enter Port or Port Range (e.g., 80 or 80-100)" required>
+        
+        <button type="submit" style="width: 100%;">Scan</button>
+    </form> 
+
+    <!-- Output Screen -->
+    <div id="output-screen">
+        <!-- Output from the scan will be displayed here -->
+        {% if scan_output %}
+        <h3>Scan Results:</h3>
+        <pre>{{ scan_output }}</pre>
+        {% endif %}
+
+        {% if scan_history %}
+        <h3>Scan history:</h3>
+        <pre>{{ scan_history }}</pre>
+        {% endif %}
+    </div>
+
+    <!-- Button for Viewing Scan History -->
+    <button id="history-button" onclick="viewScanHistory()">View Scan Logs</button>
+    <a href="{{ url_for('download_scan_result', result_id=1) }}" class="download-button" style="display: block; margin-top: 10px;">Download Scan Result</a>
+</div>
+<script>
+    function viewScanHistory() {
+    // Construct the URL with the query parameter
+    var url = '/VA?action=view_scan_history';
+
+    // Redirect to the URL
+    window.location.href = url;
+    }
+    function saveResult() {
+    // Construct the URL with the query parameter
+    var url = '/VA?action=save_result';
+    // Redirect to the URL
+    window.location.href = url;
+    }
+</script>
+
+{% endblock %}

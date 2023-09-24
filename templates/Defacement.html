@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>VADD System - Defacement Detection</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h2 style="text-align: center;">Defacement Detection</h2>
+
+    <!-- Input Form for URL and Scan Options -->
+    <form id="scan-form" action="{{ url_for('Defacement') }}" method="POST">
+        <label for="url">URL:</label>
+        <input type="text" id="url" name="url" placeholder="Enter URL" required>
+        
+        <label for="security-level">Security Level:</label>
+        <select id="security-level" name="security-level">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+        </select>
+        
+        <label for="enable-alerts">Enable Alerts:</label>
+        <input type="checkbox" id="enable-alerts" name="enable-alerts">
+        
+        <button type="submit" id="start-scan-button">Start Scan</button>
+        <button type="button" id="stop-scan-button">Stop Scan</button>
+    </form> 
+
+    <div id="output-screen" style="max-height: 300px; overflow-y: auto;">
+        <!-- Output from the scan will be displayed here -->
+        {% if scan_history %}
+            <h3>Scan History:</h3>
+            <ul id="scan-history-list">
+                {% for scan_result in scan_history %}
+                    <li>
+                        [{{ scan_result.scan_date.strftime('%H:%M:%S %d/%m/%y') }}]<br>
+                        URL: {{ scan_result.url }}<br>
+                        {% if "defaced" in scan_result.scan_output %}
+                            <span style="color: red;">{{ scan_result.scan_output }}</span>
+                        {% else %}
+                            <span style="color: green;">{{ scan_result.scan_output }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Function to scroll the output screen to the bottom
+    function scrollToBottom() {
+        var outputScreen = document.getElementById('output-screen');
+        outputScreen.scrollTop = outputScreen.scrollHeight;
+    }
+
+    // Call scrollToBottom() function on page load
+    window.onload = function() {
+        scrollToBottom();
+    };
+
+    // Call scrollToBottom() function when new content is added
+    function addNewContent() {
+        scrollToBottom();
+    }
+</script>
+{% endblock %}

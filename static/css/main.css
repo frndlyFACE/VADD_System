@@ -1,0 +1,104 @@
+/* Basic styling for the navigation bar */
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style-type: none;
+    text-align: center;
+    padding: 0; /* Remove default padding */
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 200px; /* Reduce margin for better spacing */
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #fff;
+    transition: color 0.3s ease; /* Smooth color transition on hover */
+}
+
+/* Responsive Navigation Bar */
+@media screen and (max-width: 768px) {
+    nav ul {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 0; /* Add some padding for better spacing */
+    }
+
+    nav ul li {
+        margin: 10px 0; /* Add margin between navigation items */
+    }
+}
+
+/* Style the links on hover */
+nav ul li a:hover {
+    color: #ff5733; /* Change color on hover */
+}
+
+/* Add CSS specific to the VA.html page */
+
+/* Styling for the input form */
+#scan-form {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+#scan-form label,
+#scan-form input {
+    width: 48%;
+    margin-bottom: 10px;
+}
+
+#scan-form button {
+    width: 48%; /* Adjust button width */
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+#stop-scan-button {
+    width: 48%; /* Adjust button width */
+    background-color: #ff5733; /* Change button color */
+    color: #fff;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Styling for the output screen */
+#output-screen {
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 300px;
+    overflow: auto;
+}
+
+/* Styling for the "View Scan History" button */
+#history-button {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* Styling for the "View Defacement Logs" button */
+#view-logs-button {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}

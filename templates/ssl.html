@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>VADD System - SSL/TLS Scan</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h2 style="text-align: center;">SSL/TLS Scan</h2>
+
+    <!-- Input Form for Targets -->
+    <form id="scan-form" action="{{ url_for('sslscan') }}" method="POST">
+        <label for="targets">Targets (IP Address/Domain):</label>
+        <input type="text" id="targets" name="targets" placeholder="Enter IP Address or Domain" required>
+        
+        <button type="submit" style="width: 100%;">SSL/TLS Scan</button>
+    </form> 
+
+    <!-- Output Screen -->
+    <div id="output-screen">
+        <!-- Output from the scan will be displayed here -->
+        {% if scan_output %}
+        <h3>Scan Results:</h3>
+        <pre>{{ scan_output }}</pre>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

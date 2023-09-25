@@ -38,6 +38,8 @@
                         URL: {{ scan_result.url }}<br>
                         {% if "defaced" in scan_result.scan_output %}
                             <span style="color: red;">{{ scan_result.scan_output }}</span>
+                            {% elif "Error" in scan_result.scan_output or "error" in scan_result.scan_output %}
+                            <span style="color: red;">{{ scan_result.scan_output }}</span>
                         {% else %}
                             <span style="color: green;">{{ scan_result.scan_output }}</span>
                         {% endif %}

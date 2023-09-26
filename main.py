@@ -37,7 +37,7 @@ class ssl_scan(db.Model):
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'<ScanResult url={self.url}, scan_date={self.scan_date}>'
+        return f'<ssl_scan url={self.url}, scan_date={self.scan_date}>'
     
 with app.app_context():
     db.create_all()
@@ -121,7 +121,7 @@ def Defacement():
         db.session.commit()
 
     # Retrieve all scan history items from the database
-    scan_history = ScanResult.query.all()
+    scan_history = ssl_scan.query.all()
 
     # Render Defacement.html and pass the scan history as context
     return render_template('Defacement.html', scan_history=scan_history)

@@ -11,15 +11,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
 db = SQLAlchemy(app)
 
-class ScanResult(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String(200), nullable=False)
-    scan_output = db.Column(db.String(1000), nullable=False)
-    scan_date = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f'<ScanResult url={self.url}, scan_date={self.scan_date}>'
-
 class VA_scan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     target = db.Column(db.String(200), nullable=False)
@@ -38,6 +29,15 @@ class Defacement_scan(db.Model):
 
     def __repr__(self):
         return f'<Defacement_scan url={self.url}, scan_date={self.scan_date}>'
+    
+class ssl_scan(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(200), nullable=False)
+    scan_output = db.Column(db.String(1000), nullable=False)
+    scan_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<ScanResult url={self.url}, scan_date={self.scan_date}>'
     
 with app.app_context():
     db.create_all()
@@ -116,7 +116,7 @@ def Defacement():
         output = perform_defacement_scan(url)
     
         # Store the scan result in the database
-        scan_result = ScanResult(url=url, scan_output=output)
+        scan_result = Defacement_scan(url=url, scan_output=output)
         db.session.add(scan_result)
         db.session.commit()
 
@@ -153,6 +153,11 @@ def sslscan():
     
         # Call sslscan.py with the user input and capture the output
         output = perform_sslscan(target_host)
+
+        # Store the scan result in the database
+        scan_result = ssl_scan(url=target_host, scan_output=output)
+        db.session.add(scan_result)
+        db.session.commit()
     
         # Render sslscan.html and pass the output as context
         return render_template('ssl.html', scan_output=output)

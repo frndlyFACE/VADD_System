@@ -10,7 +10,7 @@
 
     <!-- Input Form for Targets -->
     <form id="scan-form" action="{{ url_for('sslscan') }}" method="POST">
-        <label for="targets">Targets (IP Address/Domain):</label>
+        <label for="targets">Url (IP Address/Domain):</label>
         <input type="text" id="targets" name="targets" placeholder="Enter IP Address or Domain" required>
         
         <button type="submit" style="width: 100%;">SSL/TLS Scan</button>
@@ -24,5 +24,53 @@
         <pre>{{ scan_output }}</pre>
         {% endif %}
     </div>
+
+    <button id="view-logs-button">View Logs</button><br>
+    <div id="logs-container" style="display: none;">
+        <h3>Scan Logs and History:</h3>
+        <ul id="logs-list">
+            <!-- Log items will be added here dynamically -->
+        </ul>
+    </div>
 </div>
+
+<script>
+    // Function to toggle visibility of the logs container securely
+    function toggleLogsContainer() {
+        var logsContainer = document.getElementById("logs-container");
+        if (logsContainer.style.display === "none" || logsContainer.style.display === "") {
+            logsContainer.style.display = "block";
+            fetchLogs(); // Fetch logs when the container is shown
+        } else {
+            logsContainer.style.display = "none";
+        }
+    }
+
+    // Function to fetch logs from the server
+    function fetchLogs() {
+        fetch('/get_logs_ssl')  // Adjust the route as per your Flask app
+            .then(response => response.json())
+            .then(data => {
+                var logsList = document.getElementById("logs-list");
+                logsList.innerHTML = "";  // Clear existing logs
+
+                data.logs.forEach(function(log) {
+                    var listItem = document.createElement("li");
+                    listItem.innerHTML = `
+                        url: ${log.url}<br>
+                        Scan Date: ${log.scan_date}<br>
+                        Scan Output: <br><i>${log.scan_output}</i><br><br>
+                        
+                    `;
+                    logsList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching logs:', error));
+    }
+
+    // Add a click event listener to the "View Logs" button
+    var viewLogsButton = document.getElementById("view-logs-button");
+    viewLogsButton.addEventListener("click", toggleLogsContainer);
+</script>
+
 {% endblock %}

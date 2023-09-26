@@ -34,23 +34,56 @@
     </div>
 
     <!-- Button for Viewing Scan History -->
-    <button id="history-button" onclick="viewScanHistory()">View Scan Logs</button>
+    <button id="view-logs-button">View Logs</button><br>
+    <div id="logs-container" style="display: none;">
+        <h3>Scan Logs and History:</h3>
+        <ul id="logs-list">
+            <!-- Log items will be added here dynamically -->
+        </ul>
+    </div>
+
     <a href="{{ url_for('download_scan_result', result_id=1) }}" class="download-button" style="display: block; margin-top: 10px;">Download Scan Result</a>
 </div>
-<script>
-    function viewScanHistory() {
-    // Construct the URL with the query parameter
-    var url = '/VA?action=view_scan_history';
 
-    // Redirect to the URL
-    window.location.href = url;
+<script>
+    // Function to toggle visibility of the logs container securely
+    function toggleLogsContainer() {
+        var logsContainer = document.getElementById("logs-container");
+        if (logsContainer.style.display === "none" || logsContainer.style.display === "") {
+            logsContainer.style.display = "block";
+            fetchLogs(); // Fetch logs when the container is shown
+        } else {
+            logsContainer.style.display = "none";
+        }
     }
-    function saveResult() {
-    // Construct the URL with the query parameter
-    var url = '/VA?action=save_result';
-    // Redirect to the URL
-    window.location.href = url;
+
+    // Function to fetch logs from the server
+    function fetchLogs() {
+        fetch('/get_logs')  // Adjust the route as per your Flask app
+            .then(response => response.json())
+            .then(data => {
+                var logsList = document.getElementById("logs-list");
+                logsList.innerHTML = "";  // Clear existing logs
+
+                data.logs.forEach(function(log) {
+                    var listItem = document.createElement("li");
+                    listItem.innerHTML = `
+                        Target: ${log.target}<br>
+                        Port: ${log.port}<br>
+                        Scan Date: ${log.scan_date}<br>
+                        Scan Output: <br><i>${log.scan_output}</i><br><br>
+                        
+                    `;
+                    logsList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching logs:', error));
     }
+
+    // Add a click event listener to the "View Logs" button
+    var viewLogsButton = document.getElementById("view-logs-button");
+    viewLogsButton.addEventListener("click", toggleLogsContainer);
 </script>
+
 
 {% endblock %}

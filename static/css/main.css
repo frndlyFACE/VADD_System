@@ -81,6 +81,7 @@ nav ul li a:hover {
     padding: 10px;
     height: 300px;
     overflow: auto;
+    overflow: break-word;
 }
 
 /* Styling for the "View Scan History" button */
@@ -101,4 +102,13 @@ nav ul li a:hover {
     border: none;
     cursor: pointer;
     margin-top: 10px;
+}
+
+#logs-container {
+    border: 1px solid #ccc;
+    padding: 10px;
+    width: 50%; /* Half the width of the page */
+    background-color: #333; /* Background color inverted to black */
+    color: #fff; /* Text color inverted to white */
+    overflow: break-word;
 }

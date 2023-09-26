@@ -63,10 +63,7 @@ def VA():
         # Render VA.html and pass the output as context
         return render_template('VA.html', scan_output=output)
     else:
-        if request.args.get('action') == 'view_scan_history':
-            return view_scan_history()
-        else:
-            return render_template('VA.html')
+        return render_template('VA.html')
 
 def perform_vulnerability_scan(target, port):
 
@@ -80,12 +77,46 @@ def perform_vulnerability_scan(target, port):
     else:
         return f"Error: {stderr}"
 
-def view_scan_history():
+def fetch_logs():
     # Retrieve all scan history items from the database
     scan_history = VA_scan.query.all()
 
-    # Render VA.html and pass the scan history as context
-    return render_template('VA.html', scan_history=scan_history)
+    # Create a list of dictionaries from the scan history
+    logs = []
+    for scan in scan_history:
+        logs.append({
+            'target': scan.target,
+            'port': scan.port,
+            'scan_date': scan.scan_date,
+            'scan_output': scan.scan_output,
+        })
+
+    return logs
+
+def fetch_logs_ssl():
+    # Retrieve all scan history items from the database
+    scan_history = ssl_scan.query.all()
+
+    # Create a list of dictionaries from the scan history
+    logs = []
+    for scan in scan_history:
+        logs.append({
+            'url': scan.url,
+            'scan_date': scan.scan_date,
+            'scan_output': scan.scan_output,
+        })
+
+    return logs
+
+@app.route('/get_logs', methods=['GET'])
+def get_logs():
+    logs = fetch_logs()  # Retrieve logs using your existing fetch_logs function
+    return jsonify({'logs': logs})
+
+@app.route('/get_logs_ssl', methods=['GET'])
+def get_logs_ssl():
+    logs = fetch_logs_ssl()  # Retrieve logs using your existing fetch_logs function
+    return jsonify({'logs': logs})
 
 @app.route('/download_scan_result/<int:result_id>', methods=['GET'])
 def download_scan_result(result_id):
@@ -121,7 +152,7 @@ def Defacement():
         db.session.commit()
 
     # Retrieve all scan history items from the database
-    scan_history = ssl_scan.query.all()
+    scan_history = Defacement_scan.query.all()
 
     # Render Defacement.html and pass the scan history as context
     return render_template('Defacement.html', scan_history=scan_history)

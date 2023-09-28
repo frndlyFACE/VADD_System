@@ -56,7 +56,7 @@ def VA():
         output = perform_vulnerability_scan(target, port)
 
         # Store the scan result in the database
-        scan_result = VA_scan(target=target, port=port, scan_output=output)
+        scan_result = VA_scan(target=target, port=port, scan_output=f'<pre>{output}</pre>')
         db.session.add(scan_result)
         db.session.commit()
 
@@ -186,7 +186,7 @@ def sslscan():
         output = perform_sslscan(target_host)
 
         # Store the scan result in the database
-        scan_result = ssl_scan(url=target_host, scan_output=output)
+        scan_result = ssl_scan(url=target_host, scan_output=f'<pre>{output}</pre>')
         db.session.add(scan_result)
         db.session.commit()
     

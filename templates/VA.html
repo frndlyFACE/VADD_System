@@ -24,7 +24,7 @@
         <!-- Output from the scan will be displayed here -->
         {% if scan_output %}
         <h3>Scan Results:</h3>
-        <pre>{{ scan_output }}</pre>
+        <pre>{{ scan_output | safe}}</pre>
         {% endif %}
 
         {% if scan_history %}

@@ -15,7 +15,7 @@ class VA_scan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     target = db.Column(db.String(200), nullable=False)
     port = db.Column(db.String(200), nullable=False)
-    scan_output = db.Column(db.String(1000), nullable=False)
+    scan_output = db.Column(db.Text, nullable=False)
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -24,7 +24,7 @@ class VA_scan(db.Model):
 class Defacement_scan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(200), nullable=False)
-    scan_output = db.Column(db.String(1000), nullable=False)
+    scan_output = db.Column(db.Text, nullable=False)
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -33,7 +33,7 @@ class Defacement_scan(db.Model):
 class ssl_scan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(200), nullable=False)
-    scan_output = db.Column(db.String(1000), nullable=False)
+    scan_output = db.Column(db.Text, nullable=False)
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):

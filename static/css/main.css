@@ -110,5 +110,5 @@ nav ul li a:hover {
     width: 50%; /* Half the width of the page */
     background-color: #333; /* Background color inverted to black */
     color: #fff; /* Text color inverted to white */
-    overflow: break-word;
+    overflow: auto;
 }

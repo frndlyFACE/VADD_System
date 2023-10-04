@@ -206,5 +206,9 @@ def perform_sslscan(target_host):
     else:
         return f"Error: {stderr}"
 
+@app.route('/about-us')
+def about_us():
+    return render_template('about-us.html')
+
 if __name__ == "__main__":
     app.run(debug=True)

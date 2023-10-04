@@ -1,4 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 /* Basic styling for the navigation bar */
+
+* {
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
 header {
     background-color: #333;
     color: #fff;
@@ -113,21 +120,4 @@ nav ul li a:hover {
     overflow: auto;
 }
 
-#about-us {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 20px;
-    background-color: #f5f5f5;
-}
 
-#about-us h2 {
-    font-size: 24px;
-    color: #333;
-}
-
-#about-us p {
-    font-size: 16px;
-    color: #666;
-}

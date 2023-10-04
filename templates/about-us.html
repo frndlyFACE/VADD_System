@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>About Us</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+/* * {
+    padding: 0;
+    margin: 0;
+} */
+
+body {
+    background-color: #fdfdfd;
+    font-family: "Poppins", sans-serif;
+}
+
+.container {
+    margin: 20px 40px;
+    color: #030303;
+}
+
+.heading {
+    font-size: 60px;
+    color: rgb(0, 0, 0);
+}
+
+.profiles {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 80px;
+}
+
+.profile {
+    flex-basis: 260px;
+}
+
+.profile .profile-img {
+    height: 260px;
+    width: 260px;
+    border-radius: 50%;
+    filter: grayscale(100%);
+    cursor: pointer;
+    transition: 400ms;
+}
+
+.profile:hover .profile-img {
+    filter: grayscale(0%);
+}
+
+.user-name {
+    margin-top: 30px;
+    font-size: 35px;
+}
+
+.profile h5 {
+    font-size: 18px;
+    font-weight: 100;
+    letter-spacing: 3px;
+    color: #3f3d3d;
+}
+
+.profile p {
+    font-size: 16px;
+    margin-top: 20px;
+    text-align: justify;
+}
+
+@media only screen and (max-width: 1150px) {
+    .profiles {
+        flex-direction: column;        
+    }
+    .profile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .profile p {
+        text-align: center;
+        margin: 20px 60px 80px 60px;
+        font-size: 20px;
+    }
+}
+
+@media only screen and (max-width: 900px) {
+    .heading {
+        font-size: 40px;
+        color: rgb(255, 255, 255);
+        text-align: center;
+    }
+    .profiles {
+        margin: 20px 0;
+    }
+    .profile p {
+        margin: 20px 10px 80px 10px;
+    }
+}
+
+</style>
+
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <h1 class="heading">Our Team</h1>
+    <div class="profiles">
+        <div class="profile">
+            <img src="{{ url_for('static', filename='images/Kartikeya_Srivastava.jpeg') }}" alt="Kartikeya_Srivastava" class="profile-img">
+            <h3 class="user-name">Kartikeya Srivastava</h3>
+            <h5>B.tech Computer Science (Cybersecurity)</h5>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Est nulla eveniet ducimus incidunt obcaecati reprehenderit!</p>
+        </div>
+        <div class="profile">
+            <img src="{{ url_for('static', filename='images/Arjun_Seal.jpeg') }}" alt="Arjun_Seal" class="profile-img">
+            <h3 class="user-name">Arjun Seal</h3>
+            <h5>B.tech Computer Science (Cybersecurity)</h5>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Est nulla eveniet ducimus incidunt obcaecati reprehenderit!</p>
+        </div>
+        <div class="profile">
+            <img src="{{ url_for('static', filename='images/Dhruv_Mody.jpeg') }}" alt="Dhruv_Mody" class="profile-img">
+            <h3 class="user-name">Dhruv Mody</h3>
+            <h5>B.tech Computer Science (Cybersecurity)</h5>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Est nulla eveniet ducimus incidunt obcaecati reprehenderit!</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

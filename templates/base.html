@@ -6,6 +6,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% block head %}{% endblock %}
 </head>
+
+<style>
+    body {
+        background-image: url("{{ url_for('static', filename='images/background.jpg') }}");
+        background-size: cover; /* Adjust as needed */
+        background-repeat: no-repeat; /* Adjust as needed */
+        background-attachment: fixed; /* Optional: Fixed background */
+    }
+</style>
+
 <body>
     <header>
         <nav>

@@ -84,7 +84,7 @@ nav ul li a:hover {
 
 /* Styling for the output screen */
 #output-screen {
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
     padding: 10px;
     height: 300px;
     overflow: auto;

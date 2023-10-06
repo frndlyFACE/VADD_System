@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for, request, redirect, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
 import subprocess
 import time
@@ -45,6 +46,14 @@ with app.app_context():
 @app.route('/')
 def dashboard():
     return render_template('dashboard.html')
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
 
 @app.route('/VA', methods=['POST', 'GET'])
 def VA():

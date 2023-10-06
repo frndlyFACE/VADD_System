@@ -20,7 +20,7 @@ nav ul {
 
 nav ul li {
     display: inline;
-    margin-right: 200px; /* Reduce margin for better spacing */
+    margin-right: 150px; /* Reduce margin for better spacing */
 }
 
 nav ul li a {

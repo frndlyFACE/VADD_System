@@ -8,6 +8,8 @@
 
 <div class="content">
     <main>
+        you logged in as {{ current_user.username }}
+        <a href="{{ url_for('logout') }}">Logout</a>
         <section id="vulnerability-assessment">
             <!-- Content for Vulnerability Assessment Page -->
         </section>

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>VADD System</title>
+<link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+hello <br> 
+<a href="{{ url_for('login') }}">Login Page</a> <br>
+<a href="{{ url_for('register') }}">Register Page</a>
+</div>
+
+{% endblock %}

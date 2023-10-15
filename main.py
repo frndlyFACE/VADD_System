@@ -11,6 +11,8 @@ from wtforms.validators import DataRequired, Length, EqualTo, Email, ValidationE
 from flask_bcrypt import Bcrypt
 import re
 
+#defaced websites - https://mirror-h.org/
+
 scan_running = False
 
 app = Flask(__name__)

@@ -31,5 +31,5 @@ pip install -r requirement.txt
 ```
 
 ## Usage
-python3 main.py
+python3 main.py <br>
 Access the application in your web browser: http://localhost:5000

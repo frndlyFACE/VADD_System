@@ -40,22 +40,8 @@
 </div>
 
 <script>
-    // Function to toggle visibility of the logs container securely
-    function toggleLogsContainer() {
-        var logsContainer = document.getElementById("logs-container");
-        if (logsContainer.style.display === "none" || logsContainer.style display === "") {
-            logsContainer.style.display = "block";
-            fetchLogs(); // Fetch logs when the container is shown
-        } else {
-            logsContainer.style.display = "none";
-        }
-    }
-
     // Function to fetch logs from the server based on the selected category
-    function fetchLogs() {
-        var logCategoryDropdown = document.getElementById("log-category-dropdown");
-        var category = logCategoryDropdown.value;
-
+    function fetchLogsByCategory(category) {
         var url;
         switch (category) {
             case "vulnerability":
@@ -71,7 +57,7 @@
                 url = "/get_logs"; // Default to vulnerability scan
         }
 
-        fetch(url)  // Adjust the route as per your Flask app
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 var logsList = document.getElementById("logs-list");
@@ -79,21 +65,61 @@
 
                 data.logs.forEach(function(log) {
                     var listItem = document.createElement("li");
-                    listItem.innerHTML = `
-                        Target: ${log.target}<br>
-                        Port: ${log.port}<br>
-                        Scan Date: ${log.scan_date}<br>
-                        Scan Output: <br><i>${log.scan_output}</i><br><br>
-                    `;
+                    
+                    // Conditionally display fields based on the category
+                    if (category === "vulnerability") {
+                        listItem.innerHTML = `
+                            Target: ${log.target}<br>
+                            Port: ${log.port}<br>
+                            Scan Date: ${log.scan_date}<br>
+                            Scan Output: <br><i>${log.scan_output}</i><br><br>
+                        `;
+                    } else if (category === "defacement") {
+                        listItem.innerHTML = `
+                            URL: ${log.url}<br>
+                            Scan Date: ${log.scan_date}<br>
+                            Scan Output: <br><i>${log.scan_output}</i><br><br>
+                        `;
+                    } else if (category === "ssl") {
+                        listItem.innerHTML = `
+                            URL: ${log.url}<br>
+                            Scan Date: ${log.scan_date}<br>
+                            Scan Output: <br><i>${log.scan_output}</i><br><br>
+                        `;
+                    }
+                    
                     logsList.appendChild(listItem);
                 });
             })
             .catch(error => console.error('Error fetching logs:', error));
     }
 
+    // Function to toggle visibility of the logs container securely
+    function toggleLogsContainer() {
+        var logsContainer = document.getElementById("logs-container");
+        if (logsContainer.style.display === "none" || logsContainer.style.display === "") {
+            logsContainer.style.display = "block";
+            var logCategoryDropdown = document.getElementById("log-category-dropdown");
+            fetchLogsByCategory(logCategoryDropdown.value);
+        } else {
+            logsContainer.style.display = "none";
+        }
+    }
+
     // Add a click event listener to the "View Logs" button
     var viewLogsButton = document.getElementById("view-logs-button");
     viewLogsButton.addEventListener("click", toggleLogsContainer);
+
+    // Add a change event listener to the dropdown
+    var logCategoryDropdown = document.getElementById("log-category-dropdown");
+    logCategoryDropdown.addEventListener("change", function() {
+        fetchLogsByCategory(logCategoryDropdown.value);
+    });
+
+    // Initially fetch logs based on the selected category
+    fetchLogsByCategory(logCategoryDropdown.value);
 </script>
+
+
 
 {% endblock %}

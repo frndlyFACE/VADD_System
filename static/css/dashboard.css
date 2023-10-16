@@ -67,3 +67,7 @@
 .view-logs-button:hover {
   background-color: #333;
 }
+
+#logs-container {
+  width: 100%;
+}

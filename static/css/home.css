@@ -36,3 +36,57 @@
     color: #0056b3;
   }
   
+  .content {
+    width: 45%;
+    text-align: justify;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+    margin-left: 50px;
+    margin-right: 50px;
+    border-radius: 10%;
+}
+
+.content:hover {
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+    background-color: rgb(248, 248, 248);
+
+}
+
+#left {
+    order: 1;
+}
+
+#right {
+    float: right;
+}
+
+.foot {
+  background-color: #616161;
+  padding: 20px;
+  text-align: center;
+}
+
+.foot h2 {
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.foot p {
+  font-size: 16px;
+  color: #eeeeee;
+  text-align: justify;
+  margin: 10px 0;
+}
+
+.foot a {
+  text-decoration: none; /* Remove underlines from links */
+  color: #eeeeee; /* Set the default text color for links */
+  transition: color 0.3s; /* Add a smooth color transition on hover */
+}
+
+.foot a:hover {
+  color: #ff5733; /* Change the text color on hover */
+}

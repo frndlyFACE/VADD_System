@@ -314,7 +314,7 @@ def sslscan():
         output = perform_sslscan(target_host)
 
         # Store the scan result in the database
-        scan_result = ssl_scan(url=target_host, scan_output=f'<pre>{output}</pre>')
+        scan_result = ssl_scan(url=target_host, scan_output=f'<pre class="color-coded">{output}</pre>')
         db.session.add(scan_result)
         db.session.commit()
     

@@ -120,4 +120,18 @@ nav ul li a:hover {
     overflow: auto;
 }
 
+.color-coded {
+    color: inherit;
+}
 
+.green-text {
+    color: green;
+  }
+
+  .red-text {
+    color: red;
+  }
+
+  .yellow-text {
+    color: yellow;
+  }

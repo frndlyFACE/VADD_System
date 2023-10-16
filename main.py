@@ -231,6 +231,21 @@ def fetch_logs_ssl():
 
     return logs
 
+def fetch_logs_defacement():
+    # Retrieve all scan history items from the database
+    scan_history = Defacement_scan.query.all()
+
+    # Create a list of dictionaries from the scan history
+    logs = []
+    for scan in scan_history:
+        logs.append({
+            'url': scan.url,
+            'scan_date': scan.scan_date,
+            'scan_output': scan.scan_output,
+        })
+
+    return logs
+
 @app.route('/get_logs', methods=['GET'])
 @login_required
 def get_logs():
@@ -241,6 +256,12 @@ def get_logs():
 @login_required
 def get_logs_ssl():
     logs = fetch_logs_ssl()  # Retrieve logs using your existing fetch_logs function
+    return jsonify({'logs': logs})
+
+@app.route('/get_logs_defacement', methods=['GET'])
+@login_required
+def get_logs_defacement():
+    logs = fetch_logs_defacement()
     return jsonify({'logs': logs})
 
 @app.route('/download_scan_result/<int:result_id>', methods=['GET'])

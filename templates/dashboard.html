@@ -1,28 +1,99 @@
 {% extends 'base.html' %}
 
 {% block head %}
-<title>VADD System</title>
+    <title>VADD System Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
 
 {% block body %}
-
-<div class="content">
-    <main>
-        you logged in as {{ current_user.username }}
-        <a href="{{ url_for('logout') }}">Logout</a>
-        <section id="vulnerability-assessment">
-            <!-- Content for Vulnerability Assessment Page -->
-        </section>
-        <section id="static-defacement-detection">
-            <!-- Content for Static Defacement Detection Page -->
-        </section>
-        <section id="dynamic-defacement-detection">
-            <!-- Content for Dynamic Defacement Detection Page -->
-        </section>
-        <section id="ssl-tls-scanner">
-            <!-- Content for SSL/TLS Scanner Page -->
-        </section>
-    </main>
+<div class="wrapper">
+    <div class="container">
+        <main>
+            <h2>Welcome, {{ current_user.username }}!</h2>
+            
+            <div class="user-info">
+                <strong>Username:</strong> {{ current_user.username }}<br>
+                <strong>Email:</strong> {{ current_user.email }}<br>
+            </div>
+            
+            <div class="actions">
+                <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+            </div>
+        </main>
+    </div>
+    <br>
+    <section id="log-selection">
+        <h3>Select Log Category</h3>
+        <select id="log-category-dropdown">
+            <option value="vulnerability">Vulnerability Scan</option>
+            <option value="defacement">Defacement Detection</option>
+            <option value="ssl">SSL/TLS Scan</option>
+        </select>
+        <button class="view-logs-button" id="view-logs-button">View Logs</button>
+        <div id="logs-container" style="display: none;">
+            <h3>Scan Logs and History:</h3>
+            <ul id="logs-list">
+                <!-- Log items will be added here dynamically -->
+            </ul>
+    </section>
+    
 </div>
+
+<script>
+    // Function to toggle visibility of the logs container securely
+    function toggleLogsContainer() {
+        var logsContainer = document.getElementById("logs-container");
+        if (logsContainer.style.display === "none" || logsContainer.style display === "") {
+            logsContainer.style.display = "block";
+            fetchLogs(); // Fetch logs when the container is shown
+        } else {
+            logsContainer.style.display = "none";
+        }
+    }
+
+    // Function to fetch logs from the server based on the selected category
+    function fetchLogs() {
+        var logCategoryDropdown = document.getElementById("log-category-dropdown");
+        var category = logCategoryDropdown.value;
+
+        var url;
+        switch (category) {
+            case "vulnerability":
+                url = "/get_logs";
+                break;
+            case "defacement":
+                url = "/get_logs_defacement";
+                break;
+            case "ssl":
+                url = "/get_logs_ssl";
+                break;
+            default:
+                url = "/get_logs"; // Default to vulnerability scan
+        }
+
+        fetch(url)  // Adjust the route as per your Flask app
+            .then(response => response.json())
+            .then(data => {
+                var logsList = document.getElementById("logs-list");
+                logsList.innerHTML = "";  // Clear existing logs
+
+                data.logs.forEach(function(log) {
+                    var listItem = document.createElement("li");
+                    listItem.innerHTML = `
+                        Target: ${log.target}<br>
+                        Port: ${log.port}<br>
+                        Scan Date: ${log.scan_date}<br>
+                        Scan Output: <br><i>${log.scan_output}</i><br><br>
+                    `;
+                    logsList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching logs:', error));
+    }
+
+    // Add a click event listener to the "View Logs" button
+    var viewLogsButton = document.getElementById("view-logs-button");
+    viewLogsButton.addEventListener("click", toggleLogsContainer);
+</script>
 
 {% endblock %}

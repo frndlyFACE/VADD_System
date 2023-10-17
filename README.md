@@ -10,6 +10,7 @@ Follow these steps to get the project up and running on your local machine.
 - Python 3.x
 - Git
 - sslscan (for debian based distro use "sudo apt install sslscan")
+- nmap (for debian based distro use "sudo apt install nmap")
 
 ### Installation
 

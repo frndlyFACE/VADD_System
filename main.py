@@ -10,6 +10,9 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, Intege
 from wtforms.validators import DataRequired, Length, EqualTo, Email, ValidationError
 from flask_bcrypt import Bcrypt
 import re
+from email.message import EmailMessage
+import ssl
+import smtplib
 
 #defaced websites - https://mirror-h.org/
 
@@ -75,7 +78,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 class RegisterForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Length(min=2, max=20), Email()])
+    email = StringField('Email', validators=[DataRequired(), Length(min=2, max=80), Email()])
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8, max=20)])
     password2 = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
@@ -298,12 +301,34 @@ def Defacement():
         scan_result = Defacement_scan(url=url, scan_output=output)
         db.session.add(scan_result)
         db.session.commit()
-
+        
+        if output == "defaced":
+            email_alert(url, scan_result.scan_date, current_user.email)
+        
     # Retrieve all scan history items from the database
     scan_history = Defacement_scan.query.all()
 
     # Render Defacement.html and pass the scan history as context
     return render_template('Defacement.html', scan_history=scan_history)
+
+def email_alert(url, scan_date, email_receiver):
+    email_sender = 'VADD.official.2024@gmail.com'
+    email_password = 'hzjv hffv cwwl eiai'
+    
+    subject = 'test'
+    body = 'test'
+    
+    em = EmailMessage()
+    em['From'] = email_sender
+    em['To'] = email_receiver
+    em['Subject'] = subject
+    em.set_content(body)
+    
+    context = ssl.create_default_context()
+    
+    with smtplib.SMPT_SSL('smtp.gmail.com', 465, context=context) as server:
+        server.login(email_sender, email_password)
+        server.send_message(em)
 
 def get_sleep_time(security_level):
     if security_level == 'high':

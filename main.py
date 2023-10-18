@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
 import subprocess
-import time
 import tempfile
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField
@@ -302,8 +301,9 @@ def Defacement():
         db.session.add(scan_result)
         db.session.commit()
         
-        if output == "defaced":
-            email_alert(url, scan_result.scan_date, current_user.email)
+        if "defaced" in output:
+            if "enable-alerts" in request.form:
+                email_alert(url, scan_result.scan_date, current_user.email)
         
     # Retrieve all scan history items from the database
     scan_history = Defacement_scan.query.all()
@@ -315,8 +315,11 @@ def email_alert(url, scan_date, email_receiver):
     email_sender = 'VADD.official.2024@gmail.com'
     email_password = 'hzjv hffv cwwl eiai'
     
-    subject = 'test'
-    body = 'test'
+    formatted_date = scan_date.strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Define the email subject and body
+    subject = 'Defacement Alert for URL: ' + url
+    body = f'Dear {current_user.username},\n\nWe regret to inform you that the URL: {url} was detected as defaced during a scan on {formatted_date}.\n\nPlease take appropriate actions to address this security concern.\n\nBest regards,\nVADD System'
     
     em = EmailMessage()
     em['From'] = email_sender
@@ -326,7 +329,7 @@ def email_alert(url, scan_date, email_receiver):
     
     context = ssl.create_default_context()
     
-    with smtplib.SMPT_SSL('smtp.gmail.com', 465, context=context) as server:
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
         server.login(email_sender, email_password)
         server.send_message(em)
 

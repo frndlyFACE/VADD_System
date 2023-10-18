@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect, jsonify, send_file
+from flask import Flask, render_template, url_for, request, redirect, jsonify, send_file, abort, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
@@ -8,10 +8,18 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField
 from wtforms.validators import DataRequired, Length, EqualTo, Email, ValidationError
 from flask_bcrypt import Bcrypt
-import re
 from email.message import EmailMessage
 import ssl
 import smtplib
+from functools import wraps
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.username != "admin":
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
 
 #defaced websites - https://mirror-h.org/
 
@@ -34,8 +42,10 @@ def load_user(user_id):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)
+    email = db.Column(db.String(120), nullable=False, unique=False)
     password = db.Column(db.String(80), nullable=False)
+
+    role = db.Column(db.String(20), default='user', nullable=False)
 
     def __repr__(self):
         return f'<User username={self.username}>'
@@ -67,9 +77,22 @@ class ssl_scan(db.Model):
 
     def __repr__(self):
         return f'<ssl_scan url={self.url}, scan_date={self.scan_date}>'
-    
+
 with app.app_context():
     db.create_all()
+
+with app.app_context():
+    
+    existing_admin = User.query.filter_by(username='admin').first()
+    
+    if not existing_admin:
+        password = "admin1234"
+        admin_user = User(username='admin', email='VADD.official.2024@gmail.com', password=password)
+        admin_user.password = bcrypt.generate_password_hash(password)
+        admin_user.role = 'admin'
+
+        db.session.add(admin_user)
+        db.session.commit()
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
@@ -139,6 +162,8 @@ def login():
                 return render_template('ssl.html')
             else:
                 return redirect(url_for('dashboard'))
+        else:
+            flash('Login failed. Please check your username and password.', 'danger')
 
     return render_template('login.html', form=form)
 
@@ -250,18 +275,21 @@ def fetch_logs_defacement():
 
 @app.route('/get_logs', methods=['GET'])
 @login_required
+@admin_required
 def get_logs():
     logs = fetch_logs()  # Retrieve logs using your existing fetch_logs function
     return jsonify({'logs': logs})
 
 @app.route('/get_logs_ssl', methods=['GET'])
 @login_required
+@admin_required
 def get_logs_ssl():
     logs = fetch_logs_ssl()  # Retrieve logs using your existing fetch_logs function
     return jsonify({'logs': logs})
 
 @app.route('/get_logs_defacement', methods=['GET'])
 @login_required
+@admin_required
 def get_logs_defacement():
     logs = fetch_logs_defacement()
     return jsonify({'logs': logs})

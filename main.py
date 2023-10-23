@@ -245,7 +245,8 @@ def VA():
         return render_template('VA.html')
 
 def perform_vulnerability_scan(target, port):
-    command = ["python3", "VA.py", target, port]
+    VA_binary = "./VA"
+    command = [VA_binary, target, port]
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
 

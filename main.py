@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for, request, redirect, jsonify, send_file, abort, flash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exc
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
 import subprocess
@@ -23,7 +24,6 @@ def admin_required(f):
 
 #defaced websites - https://mirror-h.org/
 
-scan_running = False
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -40,6 +40,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
@@ -47,36 +48,59 @@ class User(UserMixin, db.Model):
 
     role = db.Column(db.String(20), default='user', nullable=False)
 
-    def __repr__(self):
-        return f'<User username={self.username}>'
+    va_scans = db.relationship('VA_scan', backref='user', lazy=True, cascade='all, delete-orphan')
+    defacement_scans = db.relationship('Defacement_scan', backref='user', lazy=True, cascade='all, delete-orphan')
+    ssl_scans = db.relationship('ssl_scan', backref='user', lazy=True, cascade='all, delete-orphan')
+
+    def __init__(self, username, email, password, role='user'):
+        self.username = username
+        self.email = email
+        self.password = password
+        self.role = role
 
 class VA_scan(db.Model):
+    __tablename__ = 'va'
     id = db.Column(db.Integer, primary_key=True)
     target = db.Column(db.String(200), nullable=False)
     port = db.Column(db.String(200), nullable=False)
     scan_output = db.Column(db.Text, nullable=False)
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return f'<VA_scan target={self.target}, port={self.port}, scan_date={self.scan_date}>'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __init__(self, target, port, scan_output, user_id):
+        self.target = target
+        self.port = port
+        self.scan_output = scan_output
+        self.user_id = user_id
 
 class Defacement_scan(db.Model):
+    __tablename__ = 'deface'
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(200), nullable=False)
     scan_output = db.Column(db.Text, nullable=False)
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return f'<Defacement_scan url={self.url}, scan_date={self.scan_date}>'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __init__(self, url, scan_output, user_id):
+        self.url = url
+        self.scan_output = scan_output
+        self.user_id = user_id
     
 class ssl_scan(db.Model):
+    __tablename__ = 'ssl'
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(200), nullable=False)
     scan_output = db.Column(db.Text, nullable=False)
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return f'<ssl_scan url={self.url}, scan_date={self.scan_date}>'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __init__(self, url, scan_output, user_id):
+        self.url = url
+        self.scan_output = scan_output
+        self.user_id = user_id
 
 with app.app_context():
     db.create_all()
@@ -91,8 +115,11 @@ with app.app_context():
         admin_user.password = bcrypt.generate_password_hash(password)
         admin_user.role = 'admin'
 
-        db.session.add(admin_user)
-        db.session.commit()
+        try:
+            db.session.add(admin_user)
+            db.session.commit()
+        except exc.IntegrityError:
+            db.session.rollback()
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
@@ -174,8 +201,11 @@ def register():
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data)
         new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+        except exc.IntegrityError:
+            db.session.rollback()
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
@@ -201,14 +231,19 @@ def VA():
     if request.method == 'POST':
         target = request.form['target']
         port = request.form['port']
-    
+
+        user_id = current_user.id
+        
         # Call VA.py with the user input and capture the output
         output = perform_vulnerability_scan(target, port)
 
         # Store the scan result in the database
-        scan_result = VA_scan(target=target, port=port, scan_output=f'<pre>{output}</pre>')
-        db.session.add(scan_result)
-        db.session.commit()
+        scan_result = VA_scan(target=target, port=port, scan_output=f'<pre>{output}</pre>', user_id=user_id)
+        try:
+            db.session.add(scan_result)
+            db.session.commit()
+        except exc.IntegrityError:
+            db.session.rollback()
 
         # Render VA.html and pass the output as context
         return render_template('VA.html', scan_output=output)
@@ -229,7 +264,13 @@ def perform_vulnerability_scan(target, port):
 
 def fetch_logs():
     # Retrieve all scan history items from the database
-    scan_history = VA_scan.query.all()
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        
+        if current_user.role == 'admin':
+            scan_history = VA_scan.query.all()
+        else:
+            scan_history = VA_scan.query.filter_by(user_id=user_id).all()
 
     # Create a list of dictionaries from the scan history
     logs = []
@@ -245,7 +286,13 @@ def fetch_logs():
 
 def fetch_logs_ssl():
     # Retrieve all scan history items from the database
-    scan_history = ssl_scan.query.all()
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        
+        if current_user.role == 'admin':
+            scan_history = ssl_scan.query.all()
+        else:
+            scan_history = ssl_scan.query.filter_by(user_id=user_id).all()
 
     # Create a list of dictionaries from the scan history
     logs = []
@@ -260,7 +307,13 @@ def fetch_logs_ssl():
 
 def fetch_logs_defacement():
     # Retrieve all scan history items from the database
-    scan_history = Defacement_scan.query.all()
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        
+        if current_user.role == 'admin':
+            scan_history = Defacement_scan.query.all()
+        else:
+            scan_history = Defacement_scan.query.filter_by(user_id=user_id).all()
 
     # Create a list of dictionaries from the scan history
     logs = []
@@ -275,21 +328,21 @@ def fetch_logs_defacement():
 
 @app.route('/get_logs', methods=['GET'])
 @login_required
-@admin_required
+# @admin_required
 def get_logs():
     logs = fetch_logs()  # Retrieve logs using your existing fetch_logs function
     return jsonify({'logs': logs})
 
 @app.route('/get_logs_ssl', methods=['GET'])
 @login_required
-@admin_required
+# @admin_required
 def get_logs_ssl():
     logs = fetch_logs_ssl()  # Retrieve logs using your existing fetch_logs function
     return jsonify({'logs': logs})
 
 @app.route('/get_logs_defacement', methods=['GET'])
 @login_required
-@admin_required
+# @admin_required
 def get_logs_defacement():
     logs = fetch_logs_defacement()
     return jsonify({'logs': logs})
@@ -299,7 +352,9 @@ def get_logs_defacement():
 def download_scan_result(result_id):
 
     # modify result_id to latest id in the databse
-    result_id = VA_scan.query.order_by(VA_scan.id.desc()).first().id
+    # result_id = VA_scan.query.order_by(VA_scan.id.desc()).first().id
+    user_id = current_user.id
+    result_id = VA_scan.query.filter_by(user_id=user_id).order_by(VA_scan.id.desc()).first().id
 
     # Retrieve the scan result from the database using the result_id
     scan_result = VA_scan.query.get(result_id)
@@ -320,22 +375,28 @@ def download_scan_result(result_id):
 def Defacement():
     if request.method == 'POST':
         url = request.form['url']
-    
+
+        user_id = current_user.id
         # Call Defacement.py with the user input and capture the output
         output = perform_defacement_scan(url)
     
         # Store the scan result in the database
-        scan_result = Defacement_scan(url=url, scan_output=output)
-        db.session.add(scan_result)
-        db.session.commit()
+        scan_result = Defacement_scan(url=url, scan_output=output, user_id=user_id)
+        try:
+            db.session.add(scan_result)
+            db.session.commit()
+        except exc.IntegrityError:
+            db.session.rollback()
         
         if "defaced" in output:
             if "enable-alerts" in request.form:
                 email_alert(url, scan_result.scan_date, current_user.email)
         
     # Retrieve all scan history items from the database
-    scan_history = Defacement_scan.query.all()
-
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        scan_history = Defacement_scan.query.filter_by(user_id=user_id).all()
+        
     # Render Defacement.html and pass the scan history as context
     return render_template('Defacement.html', scan_history=scan_history)
 
@@ -386,14 +447,19 @@ def perform_defacement_scan(url):
 def sslscan():
     if request.method == 'POST':
         target_host = request.form['targets']
-    
+
+        user_id = current_user.id
+        
         # Call sslscan.py with the user input and capture the output
         output = perform_sslscan(target_host)
 
         # Store the scan result in the database
-        scan_result = ssl_scan(url=target_host, scan_output=f'<pre class="color-coded">{output}</pre>')
-        db.session.add(scan_result)
-        db.session.commit()
+        scan_result = ssl_scan(url=target_host, scan_output=f'<pre class="color-coded">{output}</pre>', user_id=user_id)
+        try:
+            db.session.add(scan_result)
+            db.session.commit()
+        except exc.IntegrityError:
+            db.session.rollback()
     
         # Render sslscan.html and pass the output as context
         return render_template('ssl.html', scan_output=output)

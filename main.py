@@ -24,7 +24,6 @@ def admin_required(f):
 
 #defaced websites - https://mirror-h.org/
 
-
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
@@ -231,13 +230,9 @@ def VA():
     if request.method == 'POST':
         target = request.form['target']
         port = request.form['port']
-
         user_id = current_user.id
-        
-        # Call VA.py with the user input and capture the output
         output = perform_vulnerability_scan(target, port)
 
-        # Store the scan result in the database
         scan_result = VA_scan(target=target, port=port, scan_output=f'<pre>{output}</pre>', user_id=user_id)
         try:
             db.session.add(scan_result)
@@ -245,14 +240,11 @@ def VA():
         except exc.IntegrityError:
             db.session.rollback()
 
-        # Render VA.html and pass the output as context
         return render_template('VA.html', scan_output=output)
     else:
         return render_template('VA.html')
 
 def perform_vulnerability_scan(target, port):
-
-    # Assuming VA.py takes target and port as command line arguments
     command = ["python3", "VA.py", target, port]
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
@@ -263,7 +255,6 @@ def perform_vulnerability_scan(target, port):
         return f"Error: {stderr}"
 
 def fetch_logs():
-    # Retrieve all scan history items from the database
     if current_user.is_authenticated:
         user_id = current_user.id
         
@@ -271,8 +262,7 @@ def fetch_logs():
             scan_history = VA_scan.query.all()
         else:
             scan_history = VA_scan.query.filter_by(user_id=user_id).all()
-
-    # Create a list of dictionaries from the scan history
+            
     logs = []
     for scan in scan_history:
         logs.append({
@@ -285,7 +275,6 @@ def fetch_logs():
     return logs
 
 def fetch_logs_ssl():
-    # Retrieve all scan history items from the database
     if current_user.is_authenticated:
         user_id = current_user.id
         
@@ -294,7 +283,6 @@ def fetch_logs_ssl():
         else:
             scan_history = ssl_scan.query.filter_by(user_id=user_id).all()
 
-    # Create a list of dictionaries from the scan history
     logs = []
     for scan in scan_history:
         logs.append({
@@ -306,7 +294,6 @@ def fetch_logs_ssl():
     return logs
 
 def fetch_logs_defacement():
-    # Retrieve all scan history items from the database
     if current_user.is_authenticated:
         user_id = current_user.id
         
@@ -315,7 +302,6 @@ def fetch_logs_defacement():
         else:
             scan_history = Defacement_scan.query.filter_by(user_id=user_id).all()
 
-    # Create a list of dictionaries from the scan history
     logs = []
     for scan in scan_history:
         logs.append({
@@ -330,14 +316,14 @@ def fetch_logs_defacement():
 @login_required
 # @admin_required
 def get_logs():
-    logs = fetch_logs()  # Retrieve logs using your existing fetch_logs function
+    logs = fetch_logs()
     return jsonify({'logs': logs})
 
 @app.route('/get_logs_ssl', methods=['GET'])
 @login_required
 # @admin_required
 def get_logs_ssl():
-    logs = fetch_logs_ssl()  # Retrieve logs using your existing fetch_logs function
+    logs = fetch_logs_ssl()
     return jsonify({'logs': logs})
 
 @app.route('/get_logs_defacement', methods=['GET'])
@@ -350,22 +336,14 @@ def get_logs_defacement():
 @app.route('/download_scan_result/<int:result_id>', methods=['GET'])
 @login_required
 def download_scan_result(result_id):
-
-    # modify result_id to latest id in the databse
-    # result_id = VA_scan.query.order_by(VA_scan.id.desc()).first().id
     user_id = current_user.id
     result_id = VA_scan.query.filter_by(user_id=user_id).order_by(VA_scan.id.desc()).first().id
-
-    # Retrieve the scan result from the database using the result_id
     scan_result = VA_scan.query.get(result_id)
 
     if scan_result:
-        # Create a temporary file with the scan result content
         with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
             temp_file.write(scan_result.scan_output)
             temp_file.close()
-
-            # Send the temporary file as a download
             return send_file(temp_file.name, as_attachment=True, download_name=f'scan_result_{result_id}.txt')
     else:
         return "Scan result not found", 404
@@ -375,12 +353,9 @@ def download_scan_result(result_id):
 def Defacement():
     if request.method == 'POST':
         url = request.form['url']
-
         user_id = current_user.id
-        # Call Defacement.py with the user input and capture the output
         output = perform_defacement_scan(url)
-    
-        # Store the scan result in the database
+        
         scan_result = Defacement_scan(url=url, scan_output=output, user_id=user_id)
         try:
             db.session.add(scan_result)
@@ -392,12 +367,10 @@ def Defacement():
             if "enable-alerts" in request.form:
                 email_alert(url, scan_result.scan_date, current_user.email)
         
-    # Retrieve all scan history items from the database
     if current_user.is_authenticated:
         user_id = current_user.id
         scan_history = Defacement_scan.query.filter_by(user_id=user_id).all()
         
-    # Render Defacement.html and pass the scan history as context
     return render_template('Defacement.html', scan_history=scan_history)
 
 def email_alert(url, scan_date, email_receiver):
@@ -406,7 +379,6 @@ def email_alert(url, scan_date, email_receiver):
     
     formatted_date = scan_date.strftime('%Y-%m-%d %H:%M:%S')
     
-    # Define the email subject and body
     subject = 'Defacement Alert for URL: ' + url
     body = f'Dear {current_user.username},\n\nWe regret to inform you that the URL: {url} was detected as defaced during a scan on {formatted_date}.\n\nPlease take appropriate actions to address this security concern.\n\nBest regards,\nVADD System'
     
@@ -431,8 +403,6 @@ def get_sleep_time(security_level):
         return 60  # 60 seconds
 
 def perform_defacement_scan(url):
-    
-    # Assuming Defacement.py takes url as command line argument
     command = ["python3", "Defacement.py", url]
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
@@ -447,28 +417,23 @@ def perform_defacement_scan(url):
 def sslscan():
     if request.method == 'POST':
         target_host = request.form['targets']
-
         user_id = current_user.id
-        
-        # Call sslscan.py with the user input and capture the output
         output = perform_sslscan(target_host)
 
-        # Store the scan result in the database
         scan_result = ssl_scan(url=target_host, scan_output=f'<pre class="color-coded">{output}</pre>', user_id=user_id)
         try:
             db.session.add(scan_result)
             db.session.commit()
         except exc.IntegrityError:
             db.session.rollback()
-    
-        # Render sslscan.html and pass the output as context
+ 
         return render_template('ssl.html', scan_output=output)
     else:
         return render_template('ssl.html')
     
 def perform_sslscan(target_host):
-    # Assuming sslscan.py takes target_host as command line argument
-    command = ["python3", "sslscan.py", target_host]
+    sslscan_binary = "./sslscan"
+    command = [sslscan_binary, target_host]
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
     

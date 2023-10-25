@@ -13,6 +13,8 @@ from email.message import EmailMessage
 import ssl
 import smtplib
 from functools import wraps
+import time
+from flask_socketio import SocketIO, emit
 
 def admin_required(f):
     @wraps(f)
@@ -29,6 +31,7 @@ bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
 app.config['SECRET_KEY'] = 'secretkey'
 db = SQLAlchemy(app)
+socketio = SocketIO(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -82,10 +85,19 @@ class Defacement_scan(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    def __init__(self, url, scan_output, user_id):
-        self.url = url
-        self.scan_output = scan_output
-        self.user_id = user_id
+    # def __init__(self, url, scan_output, user_id):
+    #     self.url = url
+    #     self.scan_output = scan_output
+    #     self.user_id = user_id
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'url': self.url,
+            'scan_output': self.scan_output,
+            'scan_date': self.scan_date,
+            'user_id': self.user_id
+        }
     
 class ssl_scan(db.Model):
     __tablename__ = 'ssl'
@@ -352,21 +364,13 @@ def download_scan_result(result_id):
 @app.route('/Defacement', methods=['POST', 'GET'])
 @login_required
 def Defacement():
-    if request.method == 'POST':
+    if request.method == 'POST' and 'start' in request.form:
         url = request.form['url']
+        security_level = request.form['security-level']
+        sleep_time = get_sleep_time(security_level)
         user_id = current_user.id
-        output = perform_defacement_scan(url)
-        
-        scan_result = Defacement_scan(url=url, scan_output=output, user_id=user_id)
-        try:
-            db.session.add(scan_result)
-            db.session.commit()
-        except exc.IntegrityError:
-            db.session.rollback()
-        
-        if "defaced" in output:
-            if "enable-alerts" in request.form:
-                email_alert(url, scan_result.scan_date, current_user.email)
+        enable_alerts = request.form.get('enable-alerts')
+        perform_defacement_scan(url, sleep_time, user_id, enable_alerts)
         
     if current_user.is_authenticated:
         user_id = current_user.id
@@ -374,6 +378,34 @@ def Defacement():
         
     return render_template('Defacement.html', scan_history=scan_history)
 
+@socketio.on('start_scan', namespace='/scan')    
+def perform_defacement_scan(url, sleep_time, user_id, enable_alerts):
+    scan_results = []
+    while True:
+        start_time = time.time()
+        command = ["python3", "Defacement.py", url]
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+
+        output = stdout
+        scan_result = Defacement_scan(url=url, scan_output=output, user_id=user_id)
+        try:
+            db.session.add(scan_result)
+            db.session.commit()
+        except exc.IntegrityError:
+            db.session.rollback()
+
+        if "defaced" in output:
+            if enable_alerts:
+                email_alert(url, scan_result.scan_date, current_user.email)
+        
+        scan_results.append(scan_result)
+        socketio.emit('scan_results', [scan.to_dict() for scan in scan_results], namespace='/scan')
+        
+        elapsed_time = time.time() - start_time
+        if elapsed_time < sleep_time:
+            time.sleep(sleep_time - elapsed_time)
+            
 def email_alert(url, scan_date, email_receiver):
     email_sender = 'VADD.official.2024@gmail.com'
     email_password = 'hzjv hffv cwwl eiai'
@@ -397,21 +429,11 @@ def email_alert(url, scan_date, email_receiver):
 
 def get_sleep_time(security_level):
     if security_level == 'high':
-        return 30  # 30 seconds
+        return 15  # 30 seconds
     elif security_level == 'medium':
-        return 45  # 45 seconds
+        return 30  # 45 seconds
     elif security_level == 'low':
-        return 60  # 60 seconds
-
-def perform_defacement_scan(url):
-    command = ["python3", "Defacement.py", url]
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout, stderr = process.communicate()
-    
-    if process.returncode == 0:
-        return stdout
-    else:
-        return f"Error: {stderr}"
+        return 45  # 60 seconds
 
 @app.route('/sslscan', methods=['POST', 'GET'])
 @login_required
@@ -449,3 +471,4 @@ def about_us():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    socketio.run(app, debug=True)

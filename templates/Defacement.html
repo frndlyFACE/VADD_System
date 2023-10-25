@@ -2,6 +2,7 @@
 
 {% block head %}
 <title>VADD System - Defacement Detection</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -11,7 +12,7 @@
     <!-- Input Form for URL and Scan Options -->
     <form id="scan-form" action="{{ url_for('Defacement') }}" method="POST">
         <label for="url">URL:</label>
-        <input type="text" id="url" name="url" placeholder="Enter URL" required>
+        <input type="text" id="url" name="url" placeholder="Enter URL e.g. https://google.com/" required>
         
         <label for="security-level">Security Level:</label>
         <select id="security-level" name="security-level">
@@ -23,12 +24,32 @@
         <label for="enable-alerts">Enable Alerts:</label>
         <input type="checkbox" id="enable-alerts" name="enable-alerts">
         
-        <button type="submit" id="start-scan-button">Start Scan</button>
-        <button type="button" id="stop-scan-button">Stop Scan</button>
+        <input type="hidden" name="stop-button-clicked" id="stop-button-clicked" value="false">
+        <button type="submit" id="start-scan-button" name="start">Start Scan</button>
+        <button type="button" id="stop-scan-button" name="stop">Stop Scan</button>
+
+        <script>
+            $('#start-scan-button').click(function() {
+                var url = $('#url').val();
+                var securityLevel = $('#security-level').val();
+                var enableAlerts = $('#enable-alerts').is(':checked');
+                var sleepTime = getSleepTime(securityLevel);
+                socket.emit('start_scan', {'url': url, 'sleep_time': sleepTime, 'enable_alerts': enableAlerts});
+            });
+        </script>
+
     </form> 
 
     <div id="output-screen" style="overflow-y: auto; height: 500px;">
+        <div class="output-box">
+            <h3>Scan Output</h3>
+            <textarea id="scan-output" readonly></textarea>
+        </div>
         <!-- Output from the scan will be displayed here -->
+        {% if scan_debug %}
+            <h3>Debug:</h3>
+            <p>{{ scan_debug }}</p>
+        {% endif %}
         {% if scan_history %}
             <h3>Scan History:</h3>
             <ul id="scan-history-list">
@@ -52,7 +73,22 @@
     </div>
 </div>
 
+<script type="text/javascript">
+    var socket = io.connect('http://' + document.domain + ':' + location.port + '/scan');
+    socket.on('scan_results', function(data) {
+        var scanOutput = document.getElementById('scan-output');
+        scanOutput.value = '';
+        for (var i = 0; i < data.length; i++) {
+            scanOutput.value += data[i].scan_output + '\n';
+        }
+    });
+</script>
+
 <script>
+    document.getElementById("stop-scan-button").addEventListener("click", function() {
+        window.stop();
+        location.reload();
+    });
     // Function to scroll the output screen to the bottom
     function scrollToBottom() {
         var outputScreen = document.getElementById('output-screen');

@@ -10,18 +10,33 @@
     <div class="container">
     
   <h1>Welcome to VADD System</h1>
-  <h5>"Guarding Your Digital Realm: Uncover Weaknesses, Defend Against Defacement."</h5>
-  <a href="{{ url_for('login') }}">Login</a>
+  <h5>"Your Comprehensive Cybersecurity Solution"</h5>
+
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('dashboard') }}">Login</a>
+{% else %}
+    <a href="{{ url_for('login') }}">Login</a>
+{% endif %}
+
   <a href="{{ url_for('register') }}">Register</a> <br><br>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl pretium fusce id velit ut tortor. At tempor commodo ullamcorper a lacus vestibulum sed arcu. Risus pretium quam vulputate dignissim suspendisse in est ante in. Eu augue ut lectus arcu bibendum at varius. Nec ultrices dui sapien eget mi proin sed libero enim. Ut ornare lectus sit amet est placerat. Pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at. Cursus in hac habitasse platea. Quam quisque id diam vel quam elementum. Felis imperdiet proin fermentum leo vel. Platea dictumst vestibulum rhoncus est pellentesque elit. Auctor neque vitae tempus quam. Sem viverra aliquet eget sit. In ante metus dictum at tempor commodo ullamcorper a lacus. Laoreet suspendisse interdum consectetur libero id faucibus nisl. Tempor orci eu lobortis elementum nibh tellus molestie nunc non. Id diam vel quam elementum pulvinar etiam non quam lacus. Diam maecenas ultricies mi eget mauris pharetra et ultrices neque.
+  <p>In an increasingly digital world, safeguarding your online assets is paramount. Welcome to VADD System, your all-in-one cybersecurity partner. VADD, which stands for Vulnerability Assessment and Defacement Detection, is dedicated to fortifying your digital presence.
+
+    Our cutting-edge technology provides a two-fold approach to protect your online assets. First, our comprehensive Vulnerability Assessment scans your systems, identifying weaknesses and potential entry points for cyber threats. We leave no stone unturned, ensuring that your defenses are strong and resilient.
+    
+    But protection is only part of the equation. VADD System is also equipped with state-of-the-art Defacement Detection, alerting you to any unauthorized changes or compromises to your web assets. Early detection means swift action, preventing potential damage and safeguarding your online reputation.
+    
+    With VADD System, you gain peace of mind and an unwavering commitment to your cybersecurity. Your digital assets deserve the best protection available. Welcome to a safer, more secure online world. Welcome to VADD System.
+    
+    </p>    
 
   <h2>Idea Behind VADD System</h2>
-  <p>We're your digital fortress, proactively safeguarding websites from vulnerabilities and defacement. Our mission is to empower and protect, providing in-depth assessments that expose weaknesses before they can be exploited. Trust us to maintain your online presence resilient and secure.
+  <p>VADD System was born from the idea that safeguarding your digital world should be simple and comprehensive. We believe that everyone, from individuals to businesses, deserves the highest level of protection against cyber threats. VADD's core concept is to combine Vulnerability Assessment and Defacement Detection into a seamless and user-friendly solution. Our goal is to offer you a worry-free online experience, ensuring that your digital assets remain secure and your peace of mind intact.
+  </p>
 
   <div class="content" id = "right">
   <h2>What is Vulnerability Scan?</h2>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl pretium fusce id velit ut tortor. At tempor commodo ullamcorper a lacus vestibulum sed arcu. Risus pretium quam vulputate dignissim suspendisse in est ante in. Eu augue ut lectus arcu bibendum at varius. Nec ultrices dui sapien eget mi proin sed libero enim. Ut ornare lectus sit amet est placerat. Pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at. Cursus in hac habitasse platea. Quam quisque id diam vel quam elementum. Felis imperdiet proin fermentum leo vel. Platea dictumst vestibulum rhoncus est pellentesque elit. Auctor neque vitae tempus quam. Sem viverra aliquet eget sit. In ante metus dictum at tempor commodo ullamcorper a lacus. Laoreet suspendisse interdum consectetur libero id faucibus nisl. Tempor orci eu lobortis elementum nibh tellus molestie nunc non. Id diam vel quam elementum pulvinar etiam non quam lacus. Diam maecenas ultricies mi eget mauris pharetra et ultrices neque.
-  </div>
+  <p>A Vulnerability Scan is a critical cybersecurity process that identifies weaknesses in your digital infrastructure. It's your first line of defense, ensuring that your systems are resilient against potential cyber threats. At VADD System, our state-of-the-art scanning technology provides you with a comprehensive assessment of vulnerabilities, leaving no room for exploitation. We empower you to proactively protect your digital assets, giving you peace of mind in an ever-evolving digital landscape. Vulnerability scans are the cornerstone of a robust cybersecurity strategy, and VADD System is your trusted partner in this essential process.
+  </p> </div>
 
     <div class="content" id = "left">
   <h2>What is Defacement Detection?</h2>
@@ -30,22 +45,30 @@
 
     <div class="content" id = "right">
   <h2>What is SSL Scanner?</h2>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl pretium fusce id velit ut tortor. At tempor commodo ullamcorper a lacus vestibulum sed arcu. Risus pretium quam vulputate dignissim suspendisse in est ante in. Eu augue ut lectus arcu bibendum at varius. Nec ultrices dui sapien eget mi proin sed libero enim. Ut ornare lectus sit amet est placerat. Pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at. Cursus in hac habitasse platea. Quam quisque id diam vel quam elementum. Felis imperdiet proin fermentum leo vel. Platea dictumst vestibulum rhoncus est pellentesque elit. Auctor neque vitae tempus quam. Sem viverra aliquet eget sit. In ante metus dictum at tempor commodo ullamcorper a lacus. Laoreet suspendisse interdum consectetur libero id faucibus nisl. Tempor orci eu lobortis elementum nibh tellus molestie nunc non. Id diam vel quam elementum pulvinar etiam non quam lacus. Diam maecenas ultricies mi eget mauris pharetra et ultrices neque.
+  <p>The SSL Scanner is a powerful tool within VADD System designed to ensure your digital security. It meticulously assesses SSL/TLS configurations on web servers, identifying vulnerabilities and weaknesses. By pinpointing potential risks, it empowers you to proactively safeguard your data. Our SSL Scanner ensures encryption strength and compliance with security standards. With VADD System's SSL Scanner, you gain the upper hand in maintaining a secure and trustworthy online presence.
+  </p> 
   </div>
 
     <div class="content" id = "left">
   <h2>Why VADD System is More Efficient?</h2>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl pretium fusce id velit ut tortor. At tempor commodo ullamcorper a lacus vestibulum sed arcu. Risus pretium quam vulputate dignissim suspendisse in est ante in. Eu augue ut lectus arcu bibendum at varius. Nec ultrices dui sapien eget mi proin sed libero enim. Ut ornare lectus sit amet est placerat. Pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at. Cursus in hac habitasse platea. Quam quisque id diam vel quam elementum. Felis imperdiet proin fermentum leo vel. Platea dictumst vestibulum rhoncus est pellentesque elit. Auctor neque vitae tempus quam. Sem viverra aliquet eget sit. In ante metus dictum at tempor commodo ullamcorper a lacus. Laoreet suspendisse interdum consectetur libero id faucibus nisl. Tempor orci eu lobortis elementum nibh tellus molestie nunc non. Id diam vel quam elementum pulvinar etiam non quam lacus. Diam maecenas ultricies mi eget mauris pharetra et ultrices neque.
+  <p>VADD System stands out in efficiency thanks to its unique blend of cutting-edge technologies. Our backend programming in C ensures lightning-fast performance, minimizing scan times. We've integrated a high-precision Machine Learning model for defacement detection, boasting unparalleled accuracy. With VADD System, you get swift, thorough vulnerability assessments and robust defacement detection, providing you with a comprehensive security solution that outperforms the competition.
+    </p>
   </div>
 
 
   </div>
     <div class="foot">
   <h2><a href="{{url_for('about_us')}}">About Us</h2>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl pretium fusce id velit ut tortor. At tempor commodo ullamcorper a lacus vestibulum sed arcu. Risus pretium quam vulputate dignissim suspendisse in est ante in. Eu augue ut lectus arcu bibendum at varius. Nec ultrices dui sapien eget mi proin sed libero enim. Ut ornare lectus sit amet est placerat. Pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at. Cursus in hac habitasse platea. Quam quisque id diam vel quam elementum. Felis imperdiet proin fermentum leo vel. Platea dictumst vestibulum rhoncus est pellentesque elit. Auctor neque vitae tempus quam. Sem viverra aliquet eget sit. In ante metus dictum at tempor commodo ullamcorper a lacus. Laoreet suspendisse interdum consectetur libero id faucibus nisl. Tempor orci eu lobortis elementum nibh tellus molestie nunc non. Id diam vel quam elementum pulvinar etiam non quam lacus. Diam maecenas ultricies mi eget mauris pharetra et ultrices neque.
+  <p>At VADD System, excellence is our forte, and security is our passion. We are a dynamic team of final year students pursuing our B.Tech in Computer Science with a specialization in Cybersecurity. Fueled by a burning enthusiasm for safeguarding digital landscapes, we embarked on a remarkable journey – our capstone project. Our abode is NMIMS University, where we have had the privilege of working under the guidance of the remarkable Prof. Dhunashree Kulkarni.
+
+    VADD System is not just a project; it's a testament to our unwavering commitment to enhancing cybersecurity. Our journey has been a blend of dedication, innovation, and relentless pursuit of knowledge. As a team, we've harnessed our collective skills to create a solution that marries cutting-edge backend programming in C with a robust ML model for defacement detection, ensuring high accuracy in identifying threats.
+    
+    Our project is a labor of love, a culmination of our passion for cybersecurity, and a pledge to make the digital world safer for all. We're not just creators; we're cybersecurity evangelists, and VADD System is our testament to that devotion.
+  </p>
     <h2><a>Privacy Policy</a></h2>
     <p>At VADD, we prioritize user privacy and security. While using our vulnerability assessment and defacement detection services, we may collect website URLs and scan data solely for providing security assessments. We do not share or disclose personally identifiable information to third parties. All data is handled confidentially, used to enhance our services and ensure user security. We implement appropriate measures to protect your information. By using our services, you agree to this policy. For any privacy concerns, contact us at [contact email/phone].
-  </div>
+    </p>
+    </div>
 
 </div>
 {% endblock %}

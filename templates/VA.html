@@ -16,6 +16,16 @@
         <label for="port">Port/Port Range:</label>
         <input type="text" id="port" name="port" placeholder="Enter Port or Port Range (e.g., 80 or 80-100)" required>
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                <div class="flash-message alert alert-danger">
+                    {{ messages[-1][1] }}
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
         <button type="submit" style="width: 100%;">Scan</button>
     </form> 
 

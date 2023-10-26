@@ -147,3 +147,9 @@ nav ul li a:hover {
   .yellow-text {
     color: yellow;
   }
+
+.flash-messages {
+    color: rgba(255, 0, 0, 0.559);
+    font-size: 15px;
+    text-align: center;
+}

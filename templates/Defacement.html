@@ -27,6 +27,15 @@
         <input type="hidden" name="stop-button-clicked" id="stop-button-clicked" value="false">
         <button type="submit" id="start-scan-button" name="start">Start Scan</button>
         <button type="button" id="stop-scan-button" name="stop">Stop Scan</button>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                <div class="flash-message alert alert-danger">
+                    {{ messages[-1][1] }}
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
 
         <script>
             $('#start-scan-button').click(function() {

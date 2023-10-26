@@ -16,6 +16,8 @@ from functools import wraps
 import time
 from flask_socketio import SocketIO, emit
 from ansi2html import Ansi2HTMLConverter
+import re
+import ipaddress
 
 def admin_required(f):
     @wraps(f)
@@ -252,6 +254,15 @@ def VA():
         target = request.form['target']
         port = request.form['port']
         user_id = current_user.id
+        
+        if not is_valid_target(target):
+            flash('Invalid target. Please provide a valid URL, domain, IPv4, or IPv6 address.', 'danger')
+            return render_template('VA.html')
+
+        if not re.match(r'^\d+(-\d+)?$', port):
+            flash('Invalid port. Please provide a valid port number or port range (e.g., 80 or 80-100).', 'danger')
+            return render_template('VA.html')
+        
         output = perform_vulnerability_scan(target, port)
 
         scan_result = VA_scan(target=target, port=port, scan_output=f'<pre>{output}</pre>', user_id=user_id)
@@ -264,6 +275,20 @@ def VA():
         return render_template('VA.html', scan_output=output)
     else:
         return render_template('VA.html')
+
+def is_valid_target(target):
+    # Regular expression pattern for a valid target
+    pattern = r'^(https?://)?([A-Za-z0-9.-]+|([\d:.]+))(:[0-9]+)?$'
+
+    # Check if the target is a valid IP address
+    try:
+        target_ip = ipaddress.ip_address(target)
+        if not (target_ip.version == 4 or target_ip.version == 6):
+            return False
+    except ValueError:
+        pass  # Not a valid IP address
+
+    return re.match(pattern, target)
 
 def perform_vulnerability_scan(target, port):
     VA_binary = "./VA"
@@ -375,6 +400,11 @@ def download_scan_result(result_id):
 def Defacement():
     if request.method == 'POST' and 'start' in request.form:
         url = request.form['url']
+        
+        if not is_valid_url(url):
+            flash('Invalid target. Please provide a valid URL (e.g., http://google.com).', 'danger')
+            return render_template('Defacement.html')
+        
         security_level = request.form['security-level']
         sleep_time = get_sleep_time(security_level)
         user_id = current_user.id
@@ -386,6 +416,10 @@ def Defacement():
         scan_history = Defacement_scan.query.filter_by(user_id=user_id).all()
         
     return render_template('Defacement.html', scan_history=scan_history)
+
+def is_valid_url(url):
+    pattern = r'^https?://[A-Za-z0-9.-]+\.[A-Za-z]{2,4}(:[0-9]+)?$'
+    return re.match(pattern, url)
 
 def perform_defacement_scan(url, sleep_time, user_id, enable_alerts):
     scan_results = []
@@ -447,6 +481,11 @@ def get_sleep_time(security_level):
 def sslscan():
     if request.method == 'POST':
         target_host = request.form['targets']
+        
+        if not is_valid_target_host(target_host):
+            flash('Invalid target host. Please provide a valid IP address or domain name.', 'danger')
+            return render_template('ssl.html')
+        
         user_id = current_user.id
         output = perform_sslscan(target_host)
 
@@ -461,6 +500,17 @@ def sslscan():
     else:
         return render_template('ssl.html')
     
+def is_valid_target_host(target_host):
+    try:
+        target_ip = ipaddress.ip_address(target_host)
+        if target_ip.version == 4 or target_ip.version == 6:
+            return True
+    except ValueError:
+        # Not a valid IP address, check if it's a valid domain
+        if re.match(r'^[A-Za-z0-9.-]+$', target_host):
+            return True
+    return False
+
 def perform_sslscan(target_host):
     sslscan_binary = "./sslscan"
     command = [sslscan_binary, target_host]

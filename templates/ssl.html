@@ -13,6 +13,16 @@
         <label for="targets">Url (IP Address/Domain):</label>
         <input type="text" id="targets" name="targets" placeholder="Enter IP Address or Domain" required>
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                <div class="flash-message alert alert-danger">
+                    {{ messages[-1][1] }}
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
         <button type="submit" style="width: 100%;">SSL/TLS Scan</button>
     </form> 
 

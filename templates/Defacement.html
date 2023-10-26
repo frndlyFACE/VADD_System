@@ -73,17 +73,6 @@
     </div>
 </div>
 
-<script type="text/javascript">
-    var socket = io.connect('http://' + document.domain + ':' + location.port + '/scan');
-    socket.on('scan_results', function(data) {
-        var scanOutput = document.getElementById('scan-output');
-        scanOutput.value = '';
-        for (var i = 0; i < data.length; i++) {
-            scanOutput.value += data[i].scan_output + '\n';
-        }
-    });
-</script>
-
 <script>
     document.getElementById("stop-scan-button").addEventListener("click", function() {
         window.stop();

@@ -108,3 +108,9 @@
 .register-link a:hover {
     text-decoration: underline;
 }
+
+.flash-messages {
+    color: rgba(255, 0, 0, 0.559);
+    font-size: 15px;
+    text-align: center;
+}

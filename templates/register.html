@@ -12,6 +12,17 @@
     <form action="", method = "POST">
         {{ form.hidden_tag() }}
         <h1>Register</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                <div class="flash-message alert alert-danger">
+                    {{ messages[-1][1] }}
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
         <div class="input-box">
             {{ form.email(placeholder="Email") }}
             <i class='bx bxs-envelope'></i>

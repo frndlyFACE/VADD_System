@@ -32,7 +32,7 @@ bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
 app.config['SECRET_KEY'] = 'secretkey'
 db = SQLAlchemy(app)
-socketio = SocketIO(app)
+sio = SocketIO(app)
 
 converter = Ansi2HTMLConverter()
 
@@ -151,7 +151,13 @@ class RegisterForm(FlaskForm):
         existing_user_username = User.query.filter_by(username=username.data).first()
 
         if existing_user_username:
+            flash('Username already exists.', 'danger')
             raise ValidationError('Username already exists.')
+    
+    def validate_password(password, password2):
+        if password.data != password2.data:
+            flash('Passwords do not match.', 'danger')
+            raise ValidationError('Passwords do not match.')
 
     # @staticmethod
     # def validate_email_domain(form, field):
@@ -381,7 +387,6 @@ def Defacement():
         
     return render_template('Defacement.html', scan_history=scan_history)
 
-@socketio.on('start_scan', namespace='/scan')    
 def perform_defacement_scan(url, sleep_time, user_id, enable_alerts):
     scan_results = []
     while True:
@@ -403,7 +408,6 @@ def perform_defacement_scan(url, sleep_time, user_id, enable_alerts):
                 email_alert(url, scan_result.scan_date, current_user.email)
         
         scan_results.append(scan_result)
-        socketio.emit('scan_results', [scan.to_dict() for scan in scan_results], namespace='/scan')
         
         elapsed_time = time.time() - start_time
         if elapsed_time < sleep_time:
@@ -478,5 +482,5 @@ def about_us():
     return render_template('about-us.html')
 
 if __name__ == "__main__":
-    app.run(debug=True)
-    socketio.run(app, debug=True)
+    # app.run(debug=True)
+    sio.run(app, debug=True)

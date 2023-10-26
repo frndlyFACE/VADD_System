@@ -15,6 +15,7 @@ import smtplib
 from functools import wraps
 import time
 from flask_socketio import SocketIO, emit
+from ansi2html import Ansi2HTMLConverter
 
 def admin_required(f):
     @wraps(f)
@@ -32,6 +33,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
 app.config['SECRET_KEY'] = 'secretkey'
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
+
+converter = Ansi2HTMLConverter()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -460,8 +463,13 @@ def perform_sslscan(target_host):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
     
+    html_output = converter.convert(stdout)
+    lines = html_output.split('\n')
+    stripped_lines = [line.lstrip() for line in lines]
+    stripped_output = '\n'.join(stripped_lines)
+    
     if process.returncode == 0:
-        return stdout
+        return stripped_output
     else:
         return f"Error: {stderr}"
 

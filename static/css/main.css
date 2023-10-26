@@ -91,6 +91,18 @@ nav ul li a:hover {
     overflow: break-word;
 }
 
+#output-screen h3 {
+    color: #000000;
+}
+
+.content h2 {
+    color: #000000;
+}
+
+.content label {
+    color: #000000;
+}
+
 /* Styling for the "View Scan History" button */
 #history-button {
     background-color: #333;

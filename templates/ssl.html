@@ -35,6 +35,20 @@
 </div>
 
 <script>
+    function scrollToBottom() {
+        var outputScreen = document.getElementById('output-screen');
+        outputScreen.scrollTop = outputScreen.scrollHeight;
+    }
+
+    // Call scrollToBottom() function on page load
+    window.onload = function() {
+        scrollToBottom();
+    };
+
+    // Call scrollToBottom() function when new content is added
+    function addNewContent() {
+        scrollToBottom();
+    }
     // Function to toggle visibility of the logs container securely
     function toggleLogsContainer() {
         var logsContainer = document.getElementById("logs-container");

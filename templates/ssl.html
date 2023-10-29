@@ -23,7 +23,7 @@
         {% endif %}
     {% endwith %}
 
-        <button type="submit" style="width: 100%;">SSL/TLS Scan</button>
+        <button id="scan-button" type="submit" style="width: 100%;">Scan</button>
     </form> 
 
     <!-- Output Screen -->
@@ -32,6 +32,8 @@
         {% if scan_output %}
         <h3>Scan Results:</h3>
         <pre>{{ scan_output | safe}}</pre>
+        {% else %}
+        <h3 id="scanning-msg" style="display: none; color: green;">Scanning in progress....</h3>
         {% endif %}
     </div>
 
@@ -45,6 +47,15 @@
 </div>
 
 <script>
+    document.getElementById('scan-button').addEventListener('click', function(event) {
+        // Show 'Scanning in progress...' message
+        document.getElementById('scanning-msg').style.display = 'none'; // Hide message initially
+    });
+    
+    // After submitting the form, show the message
+    document.querySelector('form').addEventListener('submit', function(event) {
+        document.getElementById('scanning-msg').style.display = 'block'; // Show the message on form submit
+    });
     function scrollToBottom() {
         var outputScreen = document.getElementById('output-screen');
         outputScreen.scrollTop = outputScreen.scrollHeight;

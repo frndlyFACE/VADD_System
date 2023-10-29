@@ -26,7 +26,7 @@
         <input type="checkbox" id="enable-alerts" name="enable-alerts">
         
         <input type="hidden" name="stop-button-clicked" id="stop-button-clicked" value="false">
-        <button type="submit" id="start-scan-button" name="start">Start Scan</button>
+        <button id="scan-button" type="submit" id="start-scan-button" name="start">Start Scan</button>
         <button type="button" id="stop-scan-button" name="stop">Stop Scan</button>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -51,10 +51,6 @@
     </form> 
 
     <div id="output-screen" style="overflow-y: auto; height: 500px;">
-        <div class="output-box">
-            <h3>Scan Output</h3>
-            <textarea id="scan-output" readonly></textarea>
-        </div>
         <!-- Output from the scan will be displayed here -->
         {% if scan_debug %}
             <h3>Debug:</h3>
@@ -79,11 +75,22 @@
                     </li>
                 {% endfor %}
             </ul>
+            {% else %}
+        <h3 id="scanning-msg" style="display: none; color: green;">Scanning in progress....</h3>
         {% endif %}
     </div>
 </div>
 
 <script>
+    document.getElementById('scan-button').addEventListener('click', function(event) {
+        // Show 'Scanning in progress...' message
+        document.getElementById('scanning-msg').style.display = 'none'; // Hide message initially
+    });
+    
+    // After submitting the form, show the message
+    document.querySelector('form').addEventListener('submit', function(event) {
+        document.getElementById('scanning-msg').style.display = 'block'; // Show the message on form submit
+    });
     document.getElementById("stop-scan-button").addEventListener("click", function() {
         window.stop();
         location.reload();
@@ -113,4 +120,5 @@
         scrollToBottom();
     }
 </script>
+
 {% endblock %}

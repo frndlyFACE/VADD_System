@@ -6,7 +6,7 @@ from datetime import datetime
 import subprocess
 import tempfile
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, EqualTo, Email, ValidationError
 from flask_bcrypt import Bcrypt
 from email.message import EmailMessage
@@ -18,6 +18,8 @@ from flask_socketio import SocketIO, emit
 from ansi2html import Ansi2HTMLConverter
 import re
 import ipaddress
+
+scan_active = False
 
 def admin_required(f):
     @wraps(f)
@@ -155,44 +157,6 @@ class RegisterForm(FlaskForm):
         if existing_user_username:
             flash('Username already exists.', 'danger')
             raise ValidationError('Username already exists.')
-    
-    def validate_password(password, password2):
-        if password.data != password2.data:
-            flash('Passwords do not match.', 'danger')
-            raise ValidationError('Passwords do not match.')
-
-    # @staticmethod
-    # def validate_email_domain(form, field):
-    #     email = field.data
-    #     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-    #         raise ValidationError("Invalid email address format.")
-        
-    #     allowed_domains = [
-    #     "gmail.com", "yahoo.com", "hotmail.com", "aol.com", "hotmail.co.uk",
-    #     "hotmail.fr", "msn.com", "yahoo.fr", "wanadoo.fr", "orange.fr",
-    #     "comcast.net", "yahoo.co.uk", "yahoo.com.br", "yahoo.co.in", "live.com",
-    #     "rediffmail.com", "free.fr", "gmx.de", "web.de", "yandex.ru", "ymail.com",
-    #     "libero.it", "outlook.com", "uol.com.br", "bol.com.br", "mail.ru",
-    #     "cox.net", "hotmail.it", "sbcglobal.net", "sfr.fr", "live.fr",
-    #     "verizon.net", "live.co.uk", "googlemail.com", "yahoo.es", "ig.com.br",
-    #     "live.nl", "bigpond.com", "terra.com.br", "yahoo.it", "neuf.fr",
-    #     "yahoo.de", "alice.it", "rocketmail.com", "att.net", "laposte.net",
-    #     "facebook.com", "bellsouth.net", "yahoo.in", "hotmail.es", "charter.net",
-    #     "yahoo.ca", "yahoo.com.au", "rambler.ru", "hotmail.de", "tiscali.it",
-    #     "shaw.ca", "yahoo.co.jp", "sky.com", "earthlink.net", "optonline.net",
-    #     "freenet.de", "t-online.de", "aliceadsl.fr", "virgilio.it", "home.nl",
-    #     "qq.com", "telenet.be", "me.com", "yahoo.com.ar", "tiscali.co.uk",
-    #     "yahoo.com.mx", "voila.fr", "gmx.net", "mail.com", "planet.nl", "tin.it",
-    #     "live.it", "ntlworld.com", "arcor.de", "yahoo.co.id", "frontiernet.net",
-    #     "hetnet.nl", "live.com.au", "yahoo.com.sg", "zonnet.nl", "club-internet.fr",
-    #     "juno.com", "optusnet.com.au", "blueyonder.co.uk", "bluewin.ch", "skynet.be",
-    #     "sympatico.ca", "windstream.net", "mac.com", "centurytel.net", "chello.nl",
-    #     "live.ca", "aim.com", "bigpond.net.au"
-    # ]
-    #     domain = email.split('@')[1]
-    #     if domain not in allowed_domains:
-    #         raise ValidationError("Please use a valid email address.")
-
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -277,16 +241,13 @@ def VA():
         return render_template('VA.html')
 
 def is_valid_target(target):
-    # Regular expression pattern for a valid target
     pattern = r'^(https?://)?([A-Za-z0-9.-]+|([\d:.]+))(:[0-9]+)?$'
-
-    # Check if the target is a valid IP address
     try:
         target_ip = ipaddress.ip_address(target)
         if not (target_ip.version == 4 or target_ip.version == 6):
             return False
     except ValueError:
-        pass  # Not a valid IP address
+        pass
 
     return re.match(pattern, target)
 
@@ -401,15 +362,14 @@ def Defacement():
     if request.method == 'POST' and 'start' in request.form:
         url = request.form['url']
         
-        if not is_valid_url(url):
-            flash('Invalid target. Please provide a valid URL (e.g., http://google.com).', 'danger')
+        if is_valid_url(url) == False:
+            flash('Invalid target. Please provide a valid URL (e.g., https://google.com).', 'danger')
             return render_template('Defacement.html')
         
         security_level = request.form['security-level']
-        sleep_time = get_sleep_time(security_level)
         user_id = current_user.id
         enable_alerts = request.form.get('enable-alerts')
-        perform_defacement_scan(url, sleep_time, user_id, enable_alerts)
+        perform_defacement_scan(url, security_level, user_id, enable_alerts)
         
     if current_user.is_authenticated:
         user_id = current_user.id
@@ -418,13 +378,21 @@ def Defacement():
     return render_template('Defacement.html', scan_history=scan_history)
 
 def is_valid_url(url):
-    pattern = r'^https?://[A-Za-z0-9.-]+\.[A-Za-z]{2,4}(:[0-9]+)?$'
+    pattern = r'((http|https)://)(www.)?” + “[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]” + “{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)'
     return re.match(pattern, url)
 
-def perform_defacement_scan(url, sleep_time, user_id, enable_alerts):
+@app.route('/stop_scan', methods=['POST'])
+def stop_scan():
+    global scan_active
+    scan_active = False
+    return redirect(url_for('Defacement'))
+
+def perform_defacement_scan(url, security_level, user_id, enable_alerts):
     scan_results = []
-    while True:
-        start_time = time.time()
+    global scan_active
+    scan_active = True
+    sleep_time = get_sleep_time(security_level)
+    while scan_active:
         command = ["python3", "Defacement.py", url]
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = process.communicate()
@@ -440,12 +408,11 @@ def perform_defacement_scan(url, sleep_time, user_id, enable_alerts):
         if "defaced" in output:
             if enable_alerts:
                 email_alert(url, scan_result.scan_date, current_user.email)
+            scan_active = False
         
         scan_results.append(scan_result)
         
-        elapsed_time = time.time() - start_time
-        if elapsed_time < sleep_time:
-            time.sleep(sleep_time - elapsed_time)
+        time.sleep(sleep_time)
             
 def email_alert(url, scan_date, email_receiver):
     email_sender = 'VADD.official.2024@gmail.com'
@@ -470,11 +437,11 @@ def email_alert(url, scan_date, email_receiver):
 
 def get_sleep_time(security_level):
     if security_level == 'high':
-        return 15  # 30 seconds
+        return 15
     elif security_level == 'medium':
-        return 30  # 45 seconds
+        return 30
     elif security_level == 'low':
-        return 45  # 60 seconds
+        return 45
 
 @app.route('/sslscan', methods=['POST', 'GET'])
 @login_required
@@ -506,7 +473,6 @@ def is_valid_target_host(target_host):
         if target_ip.version == 4 or target_ip.version == 6:
             return True
     except ValueError:
-        # Not a valid IP address, check if it's a valid domain
         if re.match(r'^[A-Za-z0-9.-]+$', target_host):
             return True
     return False
@@ -519,7 +485,7 @@ def perform_sslscan(target_host):
     
     html_output = converter.convert(stdout)
     lines = html_output.split('\n')
-    stripped_lines = [line.lstrip() for line in lines]
+    stripped_lines = [line.lstrip(" ") for line in lines]
     stripped_output = '\n'.join(stripped_lines)
     
     if process.returncode == 0:
@@ -532,5 +498,4 @@ def about_us():
     return render_template('about-us.html')
 
 if __name__ == "__main__":
-    # app.run(debug=True)
     sio.run(app, debug=True)

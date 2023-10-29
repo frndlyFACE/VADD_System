@@ -3,6 +3,7 @@
 {% block head %}
 <title>VADD System - Defacement Detection</title>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -87,6 +88,15 @@
         window.stop();
         location.reload();
     });
+
+    document.getElementById("stop-scan-button").addEventListener("click", function() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/stop_scan", true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.send(JSON.stringify({}));
+        location.reload();
+    });
+
     // Function to scroll the output screen to the bottom
     function scrollToBottom() {
         var outputScreen = document.getElementById('output-screen');

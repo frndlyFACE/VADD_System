@@ -91,10 +91,6 @@
     document.querySelector('form').addEventListener('submit', function(event) {
         document.getElementById('scanning-msg').style.display = 'block'; // Show the message on form submit
     });
-    document.getElementById("stop-scan-button").addEventListener("click", function() {
-        window.stop();
-        location.reload();
-    });
 
     document.getElementById("stop-scan-button").addEventListener("click", function() {
         var xhr = new XMLHttpRequest();

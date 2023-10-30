@@ -19,7 +19,7 @@ from ansi2html import Ansi2HTMLConverter
 import re
 import ipaddress
 
-scan_active = False
+active_scan = True
 
 def admin_required(f):
     @wraps(f)
@@ -359,61 +359,84 @@ def download_scan_result(result_id):
 @app.route('/Defacement', methods=['POST', 'GET'])
 @login_required
 def Defacement():
-    if request.method == 'POST' and 'start' in request.form:
-        url = request.form['url']
+    global active_scan
+    if request.method == 'POST':
+        if 'start' in request.form:
+            url = request.form['url']
         
-        if is_valid_url(url) == False:
-            flash('Invalid target. Please provide a valid URL (e.g., https://google.com).', 'danger')
-            return render_template('Defacement.html')
+            if is_valid_url(url) == False:
+                flash('Invalid target. Please provide a valid URL (e.g., https://google.com).', 'danger')
+                return render_template('Defacement.html')
+            
+            security_level = request.form['security-level']
+            user_id = current_user.id
+            enable_alerts = request.form.get('enable-alerts')
+            
+            scan_results, scan_completed = perform_defacement_scan(url, security_level, user_id, enable_alerts)
+            return render_template('Defacement.html', scan_history=scan_results, scan_debug = '1', scan_completed=scan_completed)
         
-        security_level = request.form['security-level']
-        user_id = current_user.id
-        enable_alerts = request.form.get('enable-alerts')
-        perform_defacement_scan(url, security_level, user_id, enable_alerts)
-        
+        if 'stop' in request.form:
+            active_scan = False
+            
     if current_user.is_authenticated:
         user_id = current_user.id
         scan_history = Defacement_scan.query.filter_by(user_id=user_id).all()
+            
+    return render_template('Defacement.html', scan_history=scan_history, scan_debug = '0')
+
+# @app.route('/stop_scan', methods=['POST'])
+# def stop_scan():
+#     global active_scan
+#     active_scan = active_scan - 1
+#     return redirect(url_for('Defacement'))
+
+def scan_iteration(url, user_id, enable_alerts):
+    command = ["python3", "Defacement.py", url]
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate()
+
+    output = stdout
+    scan_result = Defacement_scan(url=url, scan_output=output, user_id=user_id)
+    try:
+        db.session.add(scan_result)
+        db.session.commit()
+    except exc.IntegrityError:
+        db.session.rollback()
+
+    if "defaced" in output:
+        if enable_alerts:
+            email_alert(url, scan_result.scan_date, current_user.email)
+        return scan_result, True  # Indicates scanning completed
         
-    return render_template('Defacement.html', scan_history=scan_history)
+    if process.poll() is None:
+        process.terminate()
+
+    return scan_result, False  # Indicates scan is ongoing
+
+def perform_defacement_scan(url, security_level, user_id, enable_alerts):
+    global active_scan
+    scan_results = []
+    sleep_time = get_sleep_time(security_level)
+    
+    for _ in range(1000):  # Set a finite number of iterations to prevent an infinite loop
+        if not active_scan:
+            break
+        
+        result, completed = scan_iteration(url, user_id, enable_alerts)
+        scan_results.append(result)
+        
+        if completed or not active_scan:
+            break
+        
+        time.sleep(sleep_time)
+    
+    scan_completed = not active_scan
+    return scan_results, scan_completed
 
 def is_valid_url(url):
     pattern = r'((http|https)://)(www.)?” + “[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]” + “{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)'
     return re.match(pattern, url)
-
-@app.route('/stop_scan', methods=['POST'])
-def stop_scan():
-    global scan_active
-    scan_active = False
-    return redirect(url_for('Defacement'))
-
-def perform_defacement_scan(url, security_level, user_id, enable_alerts):
-    scan_results = []
-    global scan_active
-    scan_active = True
-    sleep_time = get_sleep_time(security_level)
-    while scan_active:
-        command = ["python3", "Defacement.py", url]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate()
-
-        output = stdout
-        scan_result = Defacement_scan(url=url, scan_output=output, user_id=user_id)
-        try:
-            db.session.add(scan_result)
-            db.session.commit()
-        except exc.IntegrityError:
-            db.session.rollback()
-
-        if "defaced" in output:
-            if enable_alerts:
-                email_alert(url, scan_result.scan_date, current_user.email)
-            scan_active = False
-        
-        scan_results.append(scan_result)
-        
-        time.sleep(sleep_time)
-            
+   
 def email_alert(url, scan_date, email_receiver):
     email_sender = 'VADD.official.2024@gmail.com'
     email_password = 'hzjv hffv cwwl eiai'
@@ -437,7 +460,7 @@ def email_alert(url, scan_date, email_receiver):
 
 def get_sleep_time(security_level):
     if security_level == 'high':
-        return 15
+        return 10
     elif security_level == 'medium':
         return 30
     elif security_level == 'low':

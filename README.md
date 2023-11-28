@@ -1,6 +1,13 @@
 # VADD_System
 Capstone Project
 
+## Authors
+
+@frndlyFACE
+@Chronic1101
+@Rusticfool
+
+
 ## Getting Started
 
 Follow these steps to get the project up and running on your local machine.
